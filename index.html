@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jenny Zhang — Communication Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#050506;--fg:#F4F0E8;--muted:#6B6B6B;
+    --border:rgba(255,255,255,0.10);--border-h:rgba(255,255,255,0.22);
+    --glow:rgba(255,255,255,0.28);--accent:#D8C7A3;
+    --serif:'Cormorant Garamond',Georgia,serif;--mono:'Space Mono',monospace;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:11px;letter-spacing:.08em;overflow-x:hidden;cursor:none}
+
+  /* CURSOR */
+  #cursor{position:fixed;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.9);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s ease,opacity .2s;mix-blend-mode:difference}
+  #cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:.5px solid rgba(255,255,255,.35);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .18s ease,width .2s,height .2s}
+
+  /* CLICK GLOW */
+  .click-glow{position:fixed;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22) 0%,transparent 70%);pointer-events:none;z-index:9997;transform:translate(-50%,-50%) scale(0);animation:glowOut .6s ease-out forwards}
+  @keyframes glowOut{0%{transform:translate(-50%,-50%) scale(0);opacity:1;width:80px;height:80px}100%{transform:translate(-50%,-50%) scale(1);opacity:0;width:160px;height:160px}}
+
+  /* NOISE */
+  body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9990;opacity:.5}
+
+  /* SCROLL TRACKER */
+  #scroll-progress{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:100}
+  .scroll-dot{width:3px;height:3px;border-radius:50%;background:var(--border);border:.5px solid rgba(255,255,255,.2);transition:background .3s,transform .3s;cursor:pointer}
+  .scroll-dot.active{background:var(--fg);transform:scale(1.5)}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(5,5,6,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:.5px solid var(--border);z-index:500;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
+  .nav-logo{font-family:var(--serif);font-size:18px;font-weight:300;letter-spacing:.06em;color:var(--fg);text-decoration:none}
+  .nav-links{display:flex;gap:28px;align-items:center}
+  .nav-links a{color:var(--muted);text-decoration:none;transition:color .2s;font-size:9px;letter-spacing:.16em}
+  .nav-links a:hover{color:var(--fg)}
+  .nav-right{display:flex;align-items:center;gap:24px;color:var(--muted);font-size:9px}
+  .nav-dot{width:5px;height:5px;border-radius:50%;border:.5px solid rgba(255,255,255,.3)}
+
+  /* HERO */
+  #hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:0 64px;padding-top:52px;overflow:hidden;position:relative}
+  .hero-left{position:relative;z-index:2;padding-right:40px}
+  .hero-coords{font-size:9px;color:var(--muted);letter-spacing:.18em;margin-bottom:40px;opacity:0;animation:fadeUp 1s .2s forwards}
+  .hero-name{font-family:var(--serif);font-size:clamp(72px,9vw,118px);font-weight:300;line-height:.9;color:var(--fg);letter-spacing:-.01em;opacity:0;animation:fadeUp 1.2s .4s forwards}
+  .hero-name span{display:block}
+  .hero-name em{font-style:italic;color:rgba(244,240,232,.75);font-size:.88em}
+  .hero-subtitle{margin-top:28px;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;opacity:0;animation:fadeUp 1s .7s forwards}
+  .hero-desc{margin-top:20px;font-size:10px;line-height:1.9;color:rgba(244,240,232,.55);max-width:320px;letter-spacing:.08em;opacity:0;animation:fadeUp 1s .9s forwards}
+  .star-meta{margin-top:14px;display:inline-flex;align-items:center;gap:9px;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,240,232,.52);opacity:0;animation:fadeUp 1s 1s forwards}
+  .star-symbol{font-size:14px;color:rgba(216,199,163,.82);text-shadow:0 0 16px rgba(216,199,163,.42);animation:starPulse 4.6s ease-in-out infinite}
+  .star-text{white-space:nowrap}
+  .hero-cta{margin-top:40px;display:inline-flex;align-items:center;gap:12px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg);text-decoration:none;border-bottom:.5px solid rgba(255,255,255,.25);padding-bottom:6px;opacity:0;animation:fadeUp 1s 1.1s forwards;transition:border-color .3s}
+  .hero-cta:hover{border-color:var(--fg)}
+  .cta-circle{width:22px;height:22px;border-radius:50%;border:.5px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:14px;transition:border-color .3s}
+  .hero-vlabel{position:absolute;left:-32px;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:8px;letter-spacing:.24em;color:var(--muted);white-space:nowrap}
+
+  /* HERO RIGHT - PARALLAX SIGIL */
+  .hero-right{position:relative;height:100vh;display:flex;align-items:center;justify-content:center}
+  .sigil-container{position:relative;width:420px;height:420px;opacity:0;animation:fadeIn 2s .6s forwards;will-change:transform}
+  .sigil-container svg{position:absolute;inset:0;width:100%;height:100%}
+  .beam{position:absolute;left:50%;top:-80px;transform:translateX(-50%);width:1px;height:calc(100% + 160px);background:linear-gradient(to bottom,transparent,rgba(255,255,255,.1) 30%,rgba(255,255,255,.32) 50%,rgba(255,255,255,.1) 70%,transparent);pointer-events:none}
+
+  /* BUNNY */
+  .bunny-hero{position:absolute;bottom:80px;left:60px;opacity:0;animation:fadeIn 1.5s 1.8s forwards}
+  .scroll-label{position:absolute;right:32px;bottom:120px;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:8px;letter-spacing:.2em;color:var(--muted);opacity:0;animation:fadeIn 1.5s 1.5s forwards}
+  .scroll-line{width:.5px;height:60px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.3));animation:scrollPulse 2s ease-in-out infinite}
+  @keyframes scrollPulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  /* WORK */
+  #work{padding:120px 48px;border-top:.5px solid var(--border)}
+  .section-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:64px}
+  .section-title{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px}
+  .section-title::after{content:'+';color:rgba(255,255,255,.2);font-size:14px;font-family:var(--serif)}
+  .section-link{font-size:8.5px;letter-spacing:.18em;color:var(--muted);text-decoration:none;transition:color .2s}
+  .section-link:hover{color:var(--fg)}
+
+  /* PROJECT GRID - 6 items */
+  .project-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:.5px solid var(--border)}
+  .project-card{background:var(--bg);cursor:none;transition:background .3s;position:relative;overflow:hidden}
+  .project-card:hover{background:rgba(255,255,255,.025)}
+  .project-card:hover .card-image img{transform:scale(1.05)}
+  .project-card:hover .card-border-glow{opacity:1}
+  .project-card.featured{grid-column:span 2}
+  .card-border-glow{position:absolute;inset:0;border:.5px solid rgba(255,255,255,.2);pointer-events:none;opacity:0;transition:opacity .4s;z-index:2}
+  .card-image{aspect-ratio:2/3;overflow:hidden;background:#0d0d0e;position:relative}
+  .project-card.featured .card-image{aspect-ratio:4/3}
+  .card-image img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s cubic-bezier(.25,.1,.25,1);opacity:.9;object-position:center top}
+  .card-num{position:absolute;top:12px;left:14px;font-size:9px;letter-spacing:.1em;color:rgba(255,255,255,.4);z-index:1;font-family:var(--mono)}
+  .card-dot{position:absolute;top:14px;right:14px;width:4px;height:4px;border-radius:50%;border:.5px solid rgba(255,255,255,.25);z-index:1}
+  .card-new{position:absolute;top:12px;right:24px;font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);border:.5px solid var(--accent);padding:2px 6px;z-index:1;opacity:.85}
+  .card-body{padding:18px 16px 20px}
+  .card-category{font-size:8.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .card-title{font-family:var(--serif);font-size:17px;font-weight:400;line-height:1.2;color:var(--fg);margin-bottom:10px;letter-spacing:.01em}
+  .card-desc{font-size:9px;line-height:1.8;color:rgba(244,240,232,.45);letter-spacing:.06em;margin-bottom:16px}
+  .card-arrow{font-size:14px;color:rgba(255,255,255,.25);transition:color .2s,transform .2s;display:inline-block}
+  .project-card:hover .card-arrow{color:var(--fg);transform:translateX(4px)}
+
+  /* THREE PANELS */
+  #mid-panels{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:.5px solid var(--border)}
+  .panel{padding:56px 40px;border-right:.5px solid var(--border);position:relative}
+  .panel:last-child{border-right:none}
+  .panel-title{font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:32px;display:flex;align-items:center;gap:10px}
+
+
+  /* BIOGRAPHY */
+  .bio-portrait{width:100%;aspect-ratio:4/3;background:#0a0a0b;border:.5px solid var(--border);margin-bottom:24px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+  .bio-text-main{font-family:var(--serif);font-size:20px;font-weight:300;line-height:1.45;color:var(--fg);letter-spacing:.01em;margin-bottom:20px}
+  .bio-body{font-size:9.5px;line-height:2;color:rgba(244,240,232,.5);letter-spacing:.06em;margin-bottom:24px}
+  .bio-details{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .bio-detail-item{border:.5px solid var(--border);padding:10px 12px;font-size:8.5px;letter-spacing:.12em;color:var(--muted)}
+  .bio-detail-label{font-size:7.5px;letter-spacing:.2em;color:rgba(107,107,107,.7);margin-bottom:4px;text-transform:uppercase}
+  .bio-more{display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+  .bio-more:hover{color:var(--fg)}
+
+  /* EXPLORATIONS */
+  .archive-list{margin-bottom:24px}
+  .archive-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:.5px solid rgba(255,255,255,.06);cursor:none;transition:padding-left .2s}
+  .archive-item:hover{padding-left:6px}
+  .archive-item:hover .archive-label{color:var(--fg)}
+  .archive-item:hover .archive-plus{color:rgba(255,255,255,.5)}
+  .archive-label{font-size:9.5px;letter-spacing:.14em;color:rgba(244,240,232,.65);text-transform:uppercase;transition:color .2s}
+  .archive-plus{color:rgba(255,255,255,.15);font-size:14px;font-family:var(--serif);transition:color .2s}
+  .archive-sigil-area{margin-top:20px;height:100px;position:relative;display:flex;align-items:center;justify-content:center}
+
+/* FINAL GIF BACKGROUND */
+  #hero::before{
+    content:'';
+    position:absolute;
+    inset:52px 0 0 0;
+    background:
+      linear-gradient(90deg,rgba(5,5,6,.72),rgba(5,5,6,.38),rgba(5,5,6,.86)),
+      url('assets/images/background-motion.gif') center center/cover no-repeat;
+    opacity:.34;
+    mix-blend-mode:screen;
+    filter:grayscale(100%) contrast(1.25) brightness(.72);
+    pointer-events:none;
+    z-index:0;
+  }
+  #hero::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 58% 45%,rgba(255,255,255,.10),transparent 34%),linear-gradient(to bottom,transparent 62%,#050506 98%);
+    pointer-events:none;
+    z-index:1;
+  }
+  #hero .hero-left,#hero .hero-right{z-index:2}
+  .star-canvas{display:none!important}
+
+
+  /* STUDIO */
+  #studio{padding:100px 48px;border-top:.5px solid var(--border)}
+  .process-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:.5px solid var(--border);margin-top:48px}
+  .process-step{background:var(--bg);padding:32px 24px;position:relative}
+  .process-step:hover{background:rgba(255,255,255,.02)}
+  .process-num{font-size:8px;letter-spacing:.18em;color:rgba(107,107,107,.5);margin-bottom:16px}
+  .process-name{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--fg);margin-bottom:12px;letter-spacing:.02em}
+  .process-desc{font-size:8.5px;line-height:1.85;color:rgba(244,240,232,.4);letter-spacing:.06em}
+  .process-sigil{margin-bottom:20px}
+
+  /* CONTACT */
+  #contact{padding:100px 48px;border-top:.5px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+  .contact-col{padding:0 40px 0 0;border-right:.5px solid var(--border);margin-right:40px}
+  .contact-col:last-child{border-right:none;margin-right:0}
+  .contact-section-title{font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:32px;display:flex;align-items:center;gap:10px}
+  .contact-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:.5px solid rgba(255,255,255,.06);cursor:none;text-decoration:none;color:inherit;transition:padding-left .2s}
+  .contact-item:hover{padding-left:6px}
+  .contact-item:hover .contact-val{color:var(--fg)}
+  .contact-icon{font-size:10px;color:var(--muted);min-width:14px}
+  .contact-label{font-size:8px;letter-spacing:.16em;color:rgba(107,107,107,.6);text-transform:uppercase;min-width:68px}
+  .contact-val{font-size:9.5px;letter-spacing:.06em;color:rgba(244,240,232,.65);transition:color .2s}
+  .contact-avail{font-size:9.5px;line-height:1.9;color:rgba(244,240,232,.45);letter-spacing:.06em;margin-bottom:28px}
+  .btn-project{display:inline-flex;align-items:center;gap:10px;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;padding:13px 22px;border:.5px solid rgba(255,255,255,.25);background:transparent;color:var(--fg);cursor:none;transition:background .2s,border-color .3s;font-family:var(--mono);text-decoration:none}
+  .btn-project:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.4)}
+  .contact-big{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end}
+  .big-cta{font-family:var(--serif);font-size:clamp(42px,5vw,68px);font-weight:300;color:rgba(244,240,232,.15);letter-spacing:-.01em;text-align:right;line-height:1;transition:color .4s;text-decoration:none;cursor:none}
+  .big-cta:hover{color:rgba(244,240,232,.45)}
+
+  /* FOOTER */
+  footer{padding:28px 48px;border-top:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:8.5px;letter-spacing:.12em;color:rgba(107,107,107,.6)}
+  .footer-center{display:flex;align-items:center;gap:20px}
+  footer a{color:inherit;text-decoration:none;transition:color .2s}
+  footer a:hover{color:var(--muted)}
+
+  /* ANIMATIONS */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes sigilRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes sigilRotateReverse{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+  @keyframes starPulse{0%,100%{opacity:.3}50%{opacity:.9}}
+  @keyframes bunnyGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.2))}50%{filter:drop-shadow(0 0 10px rgba(255,255,255,.45))}}
+  @keyframes scrollPulse2{0%,100%{opacity:.4}50%{opacity:1}}
+
+  .sigil-orbit-1{transform-origin:210px 210px;animation:sigilRotate 28s linear infinite}
+  .sigil-orbit-2{transform-origin:210px 210px;animation:sigilRotateReverse 42s linear infinite}
+  .sigil-orbit-3{transform-origin:210px 210px;animation:sigilRotate 18s linear infinite}
+  .bunny-glow{animation:bunnyGlow 4s ease-in-out infinite}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+
+  .star-canvas{position:absolute;inset:0;pointer-events:none}
+
+  /* DOTTIE PROJECT LABEL */
+  .card-unreleased{position:absolute;top:12px;right:24px;font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#D8C7A3;border:.5px solid #D8C7A3;padding:2px 6px;z-index:3;opacity:.9}
+
+
+
+  /* CLICK-TO-EXPAND CASE STUDY PANEL */
+  .project-card{border:0;text-align:left;color:inherit;font:inherit}
+  .project-card:focus-visible{outline:.5px solid rgba(255,255,255,.55);outline-offset:-3px}
+  .card-action{display:inline-flex;align-items:center;gap:8px;margin-top:4px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,240,232,.42)}
+  .project-card:hover .card-action{color:var(--fg)}
+  #project-detail{display:none;margin-top:1px;border:.5px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));position:relative;overflow:hidden}
+  #project-detail.open{display:block;animation:detailIn .45s ease both}
+  @keyframes detailIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .detail-shell{display:grid;grid-template-columns:.82fr 1.18fr;min-height:520px}
+  .detail-copy{background:#f4f0e8;color:#111;padding:72px 56px;display:flex;flex-direction:column;justify-content:center}
+  .detail-kicker{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(0,0,0,.45);margin-bottom:28px;font-family:var(--mono)}
+  .detail-title{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:32px;line-height:1.05;font-weight:500;letter-spacing:-.04em;margin-bottom:22px}
+  .detail-meta{display:grid;grid-template-columns:1fr auto;gap:20px;font-size:11px;line-height:1.15;margin-bottom:46px;color:rgba(0,0,0,.75);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif}
+  .detail-description{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:1.42;letter-spacing:-.02em;color:rgba(0,0,0,.86);max-width:440px;white-space:pre-line}
+  .detail-gallery{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);padding:1px}
+  .detail-gallery figure{background:#111;min-height:260px;position:relative;overflow:hidden}
+  .detail-gallery figure.wide{grid-column:1/-1;min-height:360px}
+  .detail-gallery img{width:100%;height:100%;object-fit:cover;display:block;opacity:.94;transition:transform .8s ease,opacity .4s ease}
+  .detail-gallery figure:hover img{transform:scale(1.025);opacity:1}
+  .detail-close{position:absolute;right:22px;top:22px;width:38px;height:38px;border-radius:50%;border:.5px solid rgba(255,255,255,.2);background:rgba(0,0,0,.35);color:var(--fg);font-size:18px;cursor:none;z-index:2;backdrop-filter:blur(10px)}
+  .detail-close:hover{border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.08)}
+  .detail-thumbs{display:flex;gap:8px;margin-top:34px;flex-wrap:wrap}
+  .detail-pill{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;border:.5px solid rgba(0,0,0,.14);padding:7px 10px;color:rgba(0,0,0,.55)}
+  .bio-portrait img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(100%) contrast(1.08) brightness(.78);opacity:.86;transition:transform .8s ease,opacity .4s ease}
+  .bio-portrait:hover img{transform:scale(1.035);opacity:1}
+  .bio-portrait::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 58% 28%,transparent 0 24%,rgba(0,0,0,.22) 64%,rgba(0,0,0,.6) 100%);pointer-events:none}
+
+
+  /* FINAL POLISH */
+  .bio-portrait img{width:100%;height:100%;object-fit:cover;object-position:center 42%;filter:grayscale(100%) contrast(1.08) brightness(.82);opacity:.92;transition:transform .8s ease,filter .8s ease,opacity .8s ease}
+  .bio-portrait:hover img{transform:scale(1.035);filter:grayscale(100%) contrast(1.18) brightness(.95);opacity:1}
+  .project-expanded{scroll-margin-top:70px}
+  .case-study-gallery img{background:#0d0d0e}
+  @media(max-width:768px){.bio-portrait{aspect-ratio:4/3;height:auto}.bio-text-main{font-size:24px}.bio-body{font-size:10px;line-height:1.9}}
+
+
+  .copyright-notice,
+  .site-footer p{
+    font-size:8.5px;
+    line-height:1.7;
+    letter-spacing:.12em;
+    color:rgba(244,240,232,.42);
+    text-align:center;
+    margin-top:18px;
+  }
+  .site-footer{
+    padding:28px 48px;
+    border-top:.5px solid rgba(255,255,255,.10);
+    background:#050506;
+  }
+
+
+  /* DESIGNER PROFILE */
+  #profile{padding:96px 48px 84px;position:relative;overflow:hidden}
+  #profile::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 18%,rgba(255,255,255,.045),transparent 30%),radial-gradient(circle at 88% 74%,rgba(216,199,163,.05),transparent 28%);pointer-events:none}
+  .profile-shell{position:relative;display:grid;grid-template-columns:minmax(260px,.72fr) minmax(420px,1.28fr);gap:54px;align-items:center;max-width:1180px;margin:0 auto}
+  .profile-image{aspect-ratio:4/5;border-radius:22px;overflow:hidden;background:rgba(255,255,255,.025);position:relative;box-shadow:0 24px 90px rgba(0,0,0,.28)}
+  .profile-image img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block;filter:grayscale(100%) contrast(1.08) brightness(.82);opacity:.92;transition:transform .9s ease,filter .9s ease,opacity .9s ease}
+  .profile-image:hover img{transform:scale(1.035);filter:grayscale(80%) contrast(1.12) brightness(.95);opacity:1}
+  .profile-image::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(5,5,6,.55),transparent 42%),radial-gradient(circle at 58% 22%,transparent 0 30%,rgba(0,0,0,.22) 72%);pointer-events:none}
+  .profile-kicker{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(244,240,232,.38);margin-bottom:18px}
+  .profile-title{font-family:var(--serif);font-weight:300;font-size:clamp(36px,5vw,72px);line-height:1.02;letter-spacing:-.02em;color:rgba(244,240,232,.94);max-width:720px;margin-bottom:24px}
+  .profile-title em{font-style:italic;color:rgba(244,240,232,.68)}
+  .profile-copy{font-size:10px;line-height:2.05;color:rgba(244,240,232,.53);letter-spacing:.065em;max-width:700px;margin-bottom:18px}
+  .profile-notes{display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:30px;color:rgba(244,240,232,.47);font-size:8px;letter-spacing:.17em;text-transform:uppercase}
+  .profile-notes span::before{content:'✦';color:rgba(216,199,163,.42);margin-right:8px}
+  .profile-notes strong{display:block;font-weight:400;color:rgba(244,240,232,.72);font-size:7px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:5px}
+  @media(max-width:900px){#profile{padding:70px 20px}.profile-shell{grid-template-columns:1fr;gap:32px}.profile-image{max-width:420px}.profile-copy{font-size:10px}}
+
+
+  /* SINGLE EXPLORATION SECTION */
+  #exploration{padding:110px 48px;position:relative;overflow:hidden}
+  #exploration::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 72% 12%,rgba(216,199,163,.07),transparent 34%),radial-gradient(circle at 10% 82%,rgba(255,255,255,.04),transparent 30%);pointer-events:none}
+  .exploration-intro{position:relative;max-width:820px;margin:0 0 44px 0}
+  .explore-kicker,.explore-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(244,240,232,.36);margin-bottom:18px}
+  .exploration-intro h2{font-family:var(--serif);font-weight:300;font-size:clamp(34px,5vw,66px);line-height:1.02;letter-spacing:-.02em;color:rgba(244,240,232,.92);max-width:760px;margin-bottom:24px}
+  .exploration-intro p:last-child{font-size:10px;line-height:2;color:rgba(244,240,232,.48);letter-spacing:.07em;max-width:600px}
+  .explore-inline{position:relative;max-width:1080px;display:flex;flex-wrap:wrap;gap:10px 18px;margin:0 0 34px 0;align-items:center}
+  .explore-link{appearance:none;border:0;background:transparent;color:rgba(244,240,232,.55);font-family:var(--mono);font-size:9px;line-height:1.6;letter-spacing:.14em;text-transform:uppercase;padding:3px 0;cursor:none;position:relative;transition:color .35s ease,opacity .35s ease}
+  .explore-link::before{content:'✦';font-size:8px;margin-right:7px;color:rgba(216,199,163,.44)}
+  .explore-link::after{content:'';position:absolute;left:18px;right:0;bottom:0;height:.5px;background:rgba(244,240,232,.18);transform:scaleX(.25);transform-origin:left;transition:transform .35s ease,background .35s ease}
+  .explore-link:hover,.explore-link.active{color:rgba(244,240,232,.9)}
+  .explore-link:hover::after,.explore-link.active::after{transform:scaleX(1);background:rgba(216,199,163,.45)}
+  .exploration-list{position:relative;max-width:1180px}
+  .explore-item{display:none;position:relative;background:rgba(255,255,255,.018);backdrop-filter:blur(8px);padding:0;margin:0 0 18px 0;overflow:hidden}
+  .explore-item.open{display:block;animation:softOpen .55s ease both}
+  @keyframes softOpen{from{opacity:0;transform:translateY(12px);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+  .explore-body{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr);gap:38px;max-height:none;opacity:1;overflow:visible;background:transparent;padding:38px 0 10px}
+  .explore-copy{background:transparent;padding:0;align-self:start}
+  .explore-copy h3{font-family:var(--serif);font-size:clamp(30px,4vw,58px);font-weight:300;line-height:1.04;color:rgba(244,240,232,.92);letter-spacing:-.018em;margin-bottom:24px;max-width:640px}
+  .explore-copy p{font-size:10px;line-height:2.05;color:rgba(244,240,232,.52);letter-spacing:.06em;margin-bottom:18px;max-width:590px}
+  .explore-blog{margin-top:30px;max-width:680px;padding-left:22px;border-left:.5px solid rgba(216,199,163,.22)}
+  .explore-blog h4{font-family:var(--serif);font-size:clamp(22px,2.3vw,34px);font-weight:300;color:rgba(244,240,232,.84);letter-spacing:.01em;margin-bottom:14px}
+  .explore-blog p{font-size:10px;color:rgba(244,240,232,.50);line-height:2.08;margin-bottom:14px}
+  .explore-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+  .explore-tags span{font-size:7.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,240,232,.46);padding:6px 0;margin-right:12px}
+  .explore-images{display:grid;grid-template-columns:1fr 1fr;gap:14px;background:transparent;min-height:420px;align-self:stretch}
+  .explore-images img{width:100%;height:100%;min-height:420px;object-fit:cover;display:block;filter:grayscale(100%) contrast(1.04) brightness(.74);opacity:.82;transition:filter .7s ease,transform .8s ease,opacity .7s ease;border-radius:1px}
+  .explore-item.open .explore-images img:hover{filter:grayscale(35%) contrast(1.04) brightness(.94);transform:scale(1.018);opacity:1}
+  @media(max-width:900px){#exploration{padding:70px 20px}.explore-inline{gap:8px 14px}.explore-body{grid-template-columns:1fr;gap:28px}.explore-images{grid-template-columns:1fr}.explore-images img{min-height:300px}.explore-blog{padding-left:16px}}
+
+  /* RESPONSIVE */
+  @media(max-width:1200px){
+    .project-grid{grid-template-columns:repeat(3,1fr)}
+    .project-card.featured{grid-column:span 1}
+    .project-card.featured .card-image{aspect-ratio:2/3}
+  }
+  @media(max-width:1100px){
+    .process-grid{grid-template-columns:repeat(3,1fr)}
+    #mid-panels{grid-template-columns:1fr 1fr}
+    #mid-panels .panel:last-child{grid-column:1/-1}
+  }
+  @media(max-width:768px){
+    nav{padding:0 20px}
+    .nav-links{display:none}
+    .nav-right{display:none}
+    #hero{grid-template-columns:1fr;padding:80px 24px 60px}
+    .hero-right{display:none}
+    .hero-left{padding-right:0}
+    .hero-name{font-size:clamp(60px,16vw,90px)}
+    #work{padding:64px 20px}
+    .project-grid{grid-template-columns:1fr 1fr}
+    .project-card.featured{grid-column:span 1}
+    #mid-panels{grid-template-columns:1fr}
+    .panel{border-right:none;border-bottom:.5px solid var(--border)}
+    .process-grid{grid-template-columns:repeat(2,1fr)}
+    #contact{grid-template-columns:1fr;padding:64px 20px}
+    .contact-col{border-right:none;margin-right:0;padding-right:0;margin-bottom:40px;border-bottom:.5px solid var(--border);padding-bottom:40px}
+    #studio{padding:64px 20px}
+    footer{padding:20px;flex-direction:column;gap:12px;text-align:center}
+    #scroll-progress{display:none}
+
+    #project-detail{margin-left:0;margin-right:0}
+    .detail-shell{grid-template-columns:1fr}
+    .detail-copy{padding:42px 28px}
+    .detail-gallery{grid-template-columns:1fr}
+    .detail-gallery figure,.detail-gallery figure.wide{grid-column:auto;min-height:260px}
+  }
+  
+
+/* FINAL POLISH — process names + narration */
+.bunny-step em{font-style:normal;font-size:7.5px;letter-spacing:.16em;opacity:.55;margin-right:6px;color:rgba(216,199,163,.62)}
+.bunny-step.active em{opacity:.95}
+.process-microcopy{max-width:720px}
+.process-microcopy p{font-size:11.5px;line-height:1.95;color:rgba(244,240,232,.62)}
+.bunny-caption{backdrop-filter:blur(8px);padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.14);box-shadow:0 18px 50px rgba(0,0,0,.18)}
+.bunny-caption p{font-family:var(--serif);font-size:clamp(17px,2vw,25px);line-height:1.22;letter-spacing:-.01em;color:rgba(244,240,232,.88)}
+.bunny-caption span{align-self:flex-start;margin-top:5px;color:rgba(216,199,163,.9)}
+.bunny-words span{font-size:0!important}
+.bunny-words .w1::after{content:'observe'}
+.bunny-words .w2::after{content:'collect'}
+.bunny-words .w3::after{content:'distill'}
+.bunny-words .w4::after{content:'design'}
+.bunny-words .w5::after{content:'release'}
+.bunny-words span::after{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase}
+.bunny-cinema[data-scene="feeling"]{background:radial-gradient(circle at 18% 26%,rgba(216,199,163,.11),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.006))}
+.bunny-cinema[data-scene="collecting"]{background:radial-gradient(circle at 34% 34%,rgba(244,240,232,.09),transparent 28%),radial-gradient(circle at 75% 22%,rgba(216,199,163,.06),transparent 24%),linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.006))}
+.bunny-cinema[data-scene="translating"]{background:radial-gradient(circle at 52% 45%,rgba(216,199,163,.13),transparent 28%),linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.006))}
+.bunny-cinema[data-scene="building"]{background:radial-gradient(circle at 60% 32%,rgba(244,240,232,.08),transparent 25%),linear-gradient(135deg,rgba(255,255,255,.038),rgba(255,255,255,.006))}
+.bunny-cinema[data-scene="refining"]{background:radial-gradient(circle at 66% 55%,rgba(216,199,163,.08),transparent 22%),linear-gradient(135deg,rgba(255,255,255,.028),rgba(255,255,255,.004))}
+.bunny-cinema[data-scene="releasing"],.bunny-cinema[data-scene="jenny"]{background:radial-gradient(circle at 76% 44%,rgba(244,240,232,.12),transparent 29%),radial-gradient(circle at 44% 18%,rgba(216,199,163,.06),transparent 23%),linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.006))}
+
+a.btn-project[href^="mailto"], .big-cta[href^="mailto"], .contact-item[href^="mailto"]{text-decoration:none}
+(max-width:640px){.bunny-step em{display:block;margin:0 0 2px}.bunny-caption p{font-size:16px}.bunny-caption{padding:9px 10px}.process-microcopy p{font-size:10.5px}.bunny-process-nav{gap:7px 9px}}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+#hero {
+  position: relative;
+  overflow: hidden;
+}
+
+#hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5,5,6,0.75), rgba(5,5,6,0.4), rgba(5,5,6,0.9)),
+    url("assets/images/copy_393ABABB-42D3-4FBC-94A2-670F4C08EC43-ezgif.com-reverse.gif");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: grayscale(100%) contrast(1.3) brightness(0.7);
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#hero > * {
+  position: relative;
+  z-index: 2;
+}
+
+.star-canvas {
+  display: none !important;
+}
+
+
+
+  /* SOFTER FINAL VERSION — fewer visible lines */
+  :root{--border:rgba(255,255,255,0.055);--border-h:rgba(255,255,255,0.12)}
+  nav{border-bottom:0;background:rgba(5,5,6,.78)}
+  #work,#studio,#contact{border-top:0}
+  #mid-panels{border-top:0;gap:18px;padding:0 48px 80px}
+  .panel{border-right:0;padding:42px 34px;background:rgba(255,255,255,.018);border-radius:18px}
+  .panel:last-child{border-right:0}
+  .project-grid{gap:18px;background:transparent;border:0}
+  .project-card{border-radius:18px;overflow:hidden;background:rgba(255,255,255,.018)}
+  .card-border-glow{border:0}
+  .card-image{background:rgba(255,255,255,.025)}
+  .process-grid{gap:16px;background:transparent;border:0}
+  .process-step{border-radius:18px;background:rgba(255,255,255,.018)}
+  .bio-portrait,.bio-detail-item,#project-detail{border:0;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.025)}
+  .archive-item,.contact-item{border-bottom:0;padding:12px 0}
+  .contact-col{border-right:0}
+  .site-footer,footer{border-top:0}
+  .section-title::after,.archive-plus,.card-dot,.nav-dot{opacity:.42}
+  @media(max-width:768px){#mid-panels{padding:0 20px 50px;gap:16px}.panel{border-bottom:0}.contact-col{border-bottom:0}}
+
+
+  /* CREATIVE PROCESS - EXPANDABLE JOURNAL */
+  .creative-process-section{padding:110px 48px;border-top:.5px solid rgba(255,255,255,.045);position:relative;overflow:hidden}
+  .creative-process-section::before{content:'';position:absolute;right:-20%;top:10%;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(216,199,163,.07),transparent 62%);filter:blur(4px);pointer-events:none}
+  .process-intro{position:relative;max-width:820px;margin-bottom:34px}
+  .process-intro h2{font-family:var(--serif);font-weight:300;font-size:clamp(32px,4.7vw,60px);line-height:1.04;letter-spacing:-.02em;color:rgba(244,240,232,.9);max-width:760px;margin:16px 0 20px}
+  .process-intro p:last-child{font-size:10px;line-height:2;color:rgba(244,240,232,.48);letter-spacing:.07em;max-width:620px}
+  .process-wordline{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:8px 13px;margin:28px 0 24px;color:rgba(244,240,232,.32)}
+  .process-word{appearance:none;border:0;background:transparent;color:rgba(244,240,232,.55);font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:4px 0;transition:color .35s ease,text-shadow .35s ease,opacity .35s ease;position:relative}
+  .process-word:hover,.process-word.active{color:rgba(244,240,232,.94);text-shadow:0 0 18px rgba(216,199,163,.34)}
+  .process-word::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:.5px;background:rgba(216,199,163,.55);transform:scaleX(0);transform-origin:left;transition:transform .35s ease}
+  .process-word.active::after{transform:scaleX(1)}
+  .process-panels{position:relative;max-width:760px;min-height:360px}
+  .process-panel{display:none;opacity:0;transform:translateY(12px);padding:30px 0 6px;transition:opacity .45s ease,transform .45s ease}
+  .process-panel.open{display:block;animation:processFade .55s ease forwards}
+  @keyframes processFade{from{opacity:0;transform:translateY(14px);filter:blur(3px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+  .process-label{font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(216,199,163,.52);margin-bottom:18px}
+  .process-panel h3{font-family:var(--serif);font-weight:300;font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-.01em;color:rgba(244,240,232,.92);max-width:680px;margin-bottom:22px}
+  .process-panel p{font-size:10.2px;line-height:2.05;color:rgba(244,240,232,.55);letter-spacing:.065em;max-width:650px;margin-bottom:15px}
+  .process-panel .process-note{margin-top:22px;color:rgba(216,199,163,.72);font-family:var(--serif);font-style:italic;font-size:18px;line-height:1.45;letter-spacing:.02em;max-width:600px}
+  @media(max-width:900px){.creative-process-section{padding:74px 20px}.process-wordline{gap:7px 10px}.process-panels{min-height:430px}.process-panel{padding-top:20px}.process-panel p{font-size:10px;line-height:1.95}.process-panel .process-note{font-size:17px}}
+
+
+/* BUNNY PROCESS — visual cinematic version */
+.bunny-process-section{padding:110px 48px;border-top:.5px solid rgba(255,255,255,.035);overflow:hidden;position:relative}
+.bunny-process-wrap{max-width:1120px;margin:0 auto;position:relative}.bunny-copy-top{max-width:680px;margin-bottom:28px}
+.bunny-copy-top h2{font-family:var(--serif);font-size:clamp(36px,5.8vw,76px);line-height:.98;font-weight:300;letter-spacing:-.035em;color:rgba(244,240,232,.92);margin:12px 0 18px}
+.bunny-copy-top p:last-child{max-width:560px;font-size:10px;line-height:1.9;letter-spacing:.08em;color:rgba(244,240,232,.48)}
+.bunny-process-nav{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:26px 0 28px;color:rgba(244,240,232,.28)}
+.bunny-step{appearance:none;border:0;background:transparent;padding:5px 0;color:rgba(244,240,232,.5);font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:color .35s ease,text-shadow .35s ease}
+.bunny-step:hover,.bunny-step.active{color:rgba(244,240,232,.95);text-shadow:0 0 18px rgba(216,199,163,.32)}
+.bunny-cinema{height:min(58vw,560px);min-height:390px;border-radius:32px;position:relative;overflow:hidden;background:radial-gradient(circle at 35% 22%,rgba(255,255,255,.075),transparent 26%),linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.006));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.06),0 30px 90px rgba(0,0,0,.35);isolation:isolate;transition:background .8s ease}
+.bunny-cinema::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 65%,rgba(0,0,0,.32)),radial-gradient(circle at var(--mx,55%) var(--my,45%),rgba(216,199,163,.11),transparent 30%);pointer-events:none;transition:background .25s ease;z-index:9}
+.cinema-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:80px 80px;opacity:.3;transform:translate3d(calc((var(--mxn,0))*-14px),calc((var(--myn,0))*-10px),0)}
+.grain-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(244,240,232,.28);filter:blur(.4px);animation:floatDust 7s ease-in-out infinite}.d1{left:18%;top:26%}.d2{left:68%;top:18%;animation-delay:1s}.d3{left:82%;top:64%;animation-delay:2s}.d4{left:32%;top:76%;animation-delay:3s}@keyframes floatDust{50%{transform:translateY(-16px);opacity:.6}}
+.scene-object{position:absolute;opacity:0;transition:opacity .8s ease,transform .8s ease;z-index:2}.moon{width:92px;height:92px;border-radius:50%;left:11%;top:15%;background:radial-gradient(circle,rgba(244,240,232,.15),rgba(244,240,232,.04) 58%,transparent 62%);filter:blur(.3px)}.paper{width:54px;height:68px;border:.5px solid rgba(244,240,232,.25);background:rgba(244,240,232,.035);border-radius:6px}.p1{left:23%;top:38%;transform:rotate(-12deg)}.p2{left:66%;top:28%;transform:rotate(8deg)}.p3{left:77%;top:54%;transform:rotate(-4deg)}.pencil{width:150px;height:2px;background:rgba(216,199,163,.45);left:53%;top:48%;transform:rotate(-28deg);transform-origin:left}.pencil::after{content:'';position:absolute;right:-12px;top:-4px;border-left:12px solid rgba(216,199,163,.35);border-top:5px solid transparent;border-bottom:5px solid transparent}.grid-lines{left:48%;top:20%;width:280px;height:230px;background:linear-gradient(rgba(244,240,232,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(244,240,232,.13) 1px,transparent 1px);background-size:34px 34px;border-radius:18px}.doorway{right:13%;bottom:16%;width:118px;height:180px;border:.5px solid rgba(244,240,232,.23);border-bottom:0;border-radius:70px 70px 0 0;background:linear-gradient(180deg,rgba(244,240,232,.04),transparent)}.stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(244,240,232,.65);box-shadow:0 0 12px rgba(244,240,232,.6);animation:twinkle 2.8s ease-in-out infinite}.stars i:nth-child(1){left:22%;top:20%}.stars i:nth-child(2){left:38%;top:13%;animation-delay:.6s}.stars i:nth-child(3){left:62%;top:20%;animation-delay:1s}.stars i:nth-child(4){left:73%;top:36%;animation-delay:1.4s}.stars i:nth-child(5){left:49%;top:62%;animation-delay:1.8s}@keyframes twinkle{50%{opacity:.25;transform:scale(.6)}}
+.bunny-path{position:absolute;left:8%;right:8%;bottom:23%;height:.5px;background:linear-gradient(90deg,transparent,rgba(244,240,232,.16),transparent);z-index:1}.animated-bunny{position:absolute;left:18%;bottom:24%;width:98px;height:92px;z-index:5;filter:drop-shadow(0 18px 26px rgba(0,0,0,.45));transition:left .9s cubic-bezier(.2,.8,.2,1),bottom .9s ease,transform .9s ease,opacity .9s ease}.animated-bunny span{position:absolute;display:block}.body{width:62px;height:42px;left:20px;bottom:0;border-radius:50% 48% 42% 52%;background:rgba(244,240,232,.86);box-shadow:inset -14px -12px 18px rgba(0,0,0,.16)}.head{width:42px;height:38px;left:0;bottom:25px;border-radius:50%;background:rgba(244,240,232,.9);box-shadow:inset -10px -9px 14px rgba(0,0,0,.12)}.ear{width:12px;height:46px;bottom:55px;border-radius:99px;background:rgba(244,240,232,.83);transform-origin:bottom center}.ear-left{left:8px;transform:rotate(-13deg);animation:earSoft 3.2s ease-in-out infinite}.ear-right{left:24px;transform:rotate(14deg);animation:earSoft2 3.5s ease-in-out infinite}.eye{width:4px;height:4px;border-radius:50%;left:14px;bottom:42px;background:rgba(12,12,12,.75);animation:blink 5s infinite}.tail{width:18px;height:18px;border-radius:50%;right:2px;bottom:16px;background:rgba(244,240,232,.72)}.paw{width:18px;height:7px;border-radius:999px;left:30px;bottom:-2px;background:rgba(244,240,232,.65);animation:pawStep 1.5s ease-in-out infinite}@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}@keyframes earSoft{50%{transform:rotate(-20deg) translateY(2px)}}@keyframes earSoft2{50%{transform:rotate(20deg) translateY(1px)}}@keyframes pawStep{50%{transform:translateX(10px)}}
+.bunny-caption{position:absolute;left:30px;bottom:28px;right:30px;z-index:12;display:flex;align-items:flex-end;gap:14px;max-width:520px}.bunny-caption span{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:rgba(216,199,163,.75)}.bunny-caption p{margin:0;font-size:12px;line-height:1.6;letter-spacing:.05em;color:rgba(244,240,232,.72)}.process-microcopy{margin-top:18px;min-height:44px;max-width:620px}.process-microcopy p{font-size:11px;line-height:1.85;letter-spacing:.055em;color:rgba(244,240,232,.58);transition:opacity .35s ease}.process-microcopy strong{font-family:var(--serif);font-size:17px;font-weight:300;color:rgba(244,240,232,.92)}
+.bunny-cinema[data-scene="feeling"] .moon{opacity:1}.bunny-cinema[data-scene="feeling"] .animated-bunny{left:17%;bottom:25%;transform:scale(.96)}.bunny-cinema[data-scene="collecting"] .paper,.bunny-cinema[data-scene="collecting"] .moon{opacity:1}.bunny-cinema[data-scene="collecting"] .animated-bunny{left:34%;bottom:30%;transform:scale(1.02) rotate(-2deg)}.bunny-cinema[data-scene="translating"] .pencil,.bunny-cinema[data-scene="translating"] .paper.p1{opacity:1}.bunny-cinema[data-scene="translating"] .animated-bunny{left:48%;bottom:27%;transform:scale(1.04) rotate(2deg)}.bunny-cinema[data-scene="building"] .grid-lines,.bunny-cinema[data-scene="building"] .pencil{opacity:1}.bunny-cinema[data-scene="building"] .animated-bunny{left:58%;bottom:33%;transform:scale(.98)}.bunny-cinema[data-scene="refining"] .grid-lines,.bunny-cinema[data-scene="refining"] .stars{opacity:1}.bunny-cinema[data-scene="refining"] .animated-bunny{left:66%;bottom:25%;transform:scale(.9);filter:drop-shadow(0 18px 32px rgba(216,199,163,.18))}.bunny-cinema[data-scene="releasing"] .doorway,.bunny-cinema[data-scene="releasing"] .stars{opacity:1}.bunny-cinema[data-scene="releasing"] .animated-bunny{left:76%;bottom:25%;transform:scale(.86);opacity:.72}.bunny-cinema[data-scene="jenny"] .moon,.bunny-cinema[data-scene="jenny"] .paper,.bunny-cinema[data-scene="jenny"] .pencil,.bunny-cinema[data-scene="jenny"] .grid-lines,.bunny-cinema[data-scene="jenny"] .doorway,.bunny-cinema[data-scene="jenny"] .stars{opacity:1}.bunny-cinema[data-scene="jenny"] .animated-bunny{left:50%;bottom:30%;transform:translateX(-50%) scale(1.08)}
+@media(max-width:760px){.bunny-process-section{padding:74px 18px}.bunny-copy-top h2{font-size:clamp(34px,12vw,58px)}.bunny-cinema{height:560px;min-height:560px;border-radius:24px}.bunny-process-nav{gap:7px 10px}.bunny-step{font-size:8.5px}.animated-bunny{width:78px;height:74px}.body{width:50px;height:34px}.head{width:34px;height:31px;bottom:20px}.ear{height:38px;bottom:45px}.tail{width:15px;height:15px}.bunny-caption{left:18px;right:18px;bottom:20px;align-items:flex-start}.bunny-caption p{font-size:11px}.grid-lines{width:200px;height:190px;left:30%;top:23%}.doorway{right:10%;bottom:16%;height:145px;width:92px}.bunny-cinema[data-scene="feeling"] .animated-bunny{left:15%;bottom:25%}.bunny-cinema[data-scene="collecting"] .animated-bunny{left:30%;bottom:32%}.bunny-cinema[data-scene="translating"] .animated-bunny{left:46%;bottom:30%}.bunny-cinema[data-scene="building"] .animated-bunny{left:55%;bottom:38%}.bunny-cinema[data-scene="refining"] .animated-bunny{left:62%;bottom:30%}.bunny-cinema[data-scene="releasing"] .animated-bunny{left:72%;bottom:26%}}
+@media(prefers-reduced-motion:reduce){.animated-bunny,.scene-object,.grain-dot,.stars i,.ear,.paw,.eye{animation:none!important;transition:none!important}}
+
+
+/* FINAL BUNNY PROCESS OVERRIDES */
+.bunny-process-section{padding:100px 44px;border-top:.5px solid rgba(255,255,255,.025)}
+.bunny-copy-top{max-width:650px}.bunny-copy-top h2{font-size:clamp(34px,5.4vw,70px)}
+.bunny-cinema{height:min(60vw,590px);min-height:430px;border-radius:34px;background:radial-gradient(circle at 35% 24%,rgba(244,240,232,.08),transparent 25%),radial-gradient(circle at 78% 70%,rgba(216,199,163,.055),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.006))}
+.bunny-cinema:before{content:'';position:absolute;inset:-20%;background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.035) 48%,transparent 58%);transform:translateX(calc(var(--mxn,0)*18px)) rotate(-8deg);opacity:.55;z-index:0;pointer-events:none}.bunny-cinema:after{z-index:18}.animated-bunny{width:108px;height:100px;transition:left 1s cubic-bezier(.2,.8,.2,1),bottom 1s ease,transform 1s ease,opacity 1s ease}.animated-bunny .body{width:68px;height:46px;left:23px}.animated-bunny .head{width:45px;height:41px;bottom:28px}.animated-bunny .ear{width:13px;height:50px;bottom:60px}.animated-bunny .ear-right{left:26px}.animated-bunny .eye{bottom:46px}.animated-bunny .tail{width:19px;height:19px}.bunny-trail{position:absolute;left:12%;right:12%;bottom:24%;height:1px;z-index:3;opacity:.55}.bunny-trail i{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(216,199,163,.52);box-shadow:0 0 14px rgba(216,199,163,.42);top:-2px;transform:scale(.4);opacity:.25;transition:opacity .7s ease,transform .7s ease}.bunny-trail i:nth-child(1){left:8%}.bunny-trail i:nth-child(2){left:22%}.bunny-trail i:nth-child(3){left:38%}.bunny-trail i:nth-child(4){left:52%}.bunny-trail i:nth-child(5){left:66%}.bunny-trail i:nth-child(6){left:80%}.bunny-words{position:absolute;inset:0;z-index:8;pointer-events:none}.bunny-words span{position:absolute;font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,240,232,.33);opacity:0;filter:blur(4px);transform:translateY(8px);transition:opacity .7s ease,filter .7s ease,transform .7s ease}.w1{left:18%;top:56%}.w2{left:34%;top:27%}.w3{left:50%;top:60%}.w4{left:64%;top:30%}.w5{left:73%;top:52%}.type-cursor:after{content:'_';opacity:.7;animation:cursorBlink .9s steps(2,end) infinite}@keyframes cursorBlink{50%{opacity:0}}.bunny-autoplay{display:inline-flex;align-items:center;gap:8px;margin-top:15px;font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,240,232,.38)}.bunny-autoplay button{appearance:none;border:0;background:transparent;color:rgba(216,199,163,.62);font:inherit;cursor:pointer;padding:0}.bunny-autoplay button:hover{color:rgba(244,240,232,.9)}
+.bunny-cinema[data-scene="feeling"] .bunny-trail i:nth-child(-n+1),.bunny-cinema[data-scene="collecting"] .bunny-trail i:nth-child(-n+2),.bunny-cinema[data-scene="translating"] .bunny-trail i:nth-child(-n+3),.bunny-cinema[data-scene="building"] .bunny-trail i:nth-child(-n+4),.bunny-cinema[data-scene="refining"] .bunny-trail i:nth-child(-n+5),.bunny-cinema[data-scene="releasing"] .bunny-trail i,.bunny-cinema[data-scene="jenny"] .bunny-trail i{opacity:.9;transform:scale(1)}
+.bunny-cinema[data-scene="feeling"] .w1,.bunny-cinema[data-scene="collecting"] .w1,.bunny-cinema[data-scene="collecting"] .w2,.bunny-cinema[data-scene="translating"] .w2,.bunny-cinema[data-scene="translating"] .w3,.bunny-cinema[data-scene="building"] .w3,.bunny-cinema[data-scene="building"] .w4,.bunny-cinema[data-scene="refining"] .w4,.bunny-cinema[data-scene="refining"] .w5,.bunny-cinema[data-scene="releasing"] .w5,.bunny-cinema[data-scene="jenny"] .bunny-words span{opacity:1;filter:blur(0);transform:none}
+@media(max-width:900px){.bunny-process-section{padding:82px 20px}.bunny-cinema{height:560px;min-height:560px;border-radius:26px}.animated-bunny{width:84px;height:78px}.animated-bunny .body{width:53px;height:36px}.animated-bunny .head{width:36px;height:33px;bottom:21px}.animated-bunny .ear{height:40px;bottom:48px}.animated-bunny .tail{width:15px;height:15px}.bunny-caption{left:18px;right:18px;bottom:20px;max-width:92%;gap:10px}.bunny-caption p{font-size:11px}.bunny-words span{font-size:7.8px}.w1{left:16%;top:50%}.w2{left:32%;top:22%}.w3{left:46%;top:55%}.w4{left:56%;top:25%}.w5{left:68%;top:50%}}
+@media(max-width:520px){.bunny-process-section{padding:68px 14px}.bunny-cinema{height:520px;min-height:520px;border-radius:22px}.bunny-caption{display:block}.bunny-caption span{display:block;margin-bottom:6px}.bunny-process-nav{line-height:1.9}.process-microcopy p{font-size:10px}}
+
+
+
+/* FINAL FIX: bunny faces right and hops step-to-step */
+.animated-bunny{transform-origin:50% 86%; will-change:left,bottom,transform;}
+.animated-bunny .body{left:17px!important;border-radius:48% 50% 52% 42%;box-shadow:inset 12px -12px 18px rgba(0,0,0,.16)!important;}
+.animated-bunny .head{left:auto!important;right:0!important;bottom:26px!important;box-shadow:inset 10px -9px 14px rgba(0,0,0,.12)!important;}
+.animated-bunny .ear-left{left:auto!important;right:27px!important;transform:rotate(-10deg);}
+.animated-bunny .ear-right{left:auto!important;right:10px!important;transform:rotate(16deg);}
+.animated-bunny .eye{left:auto!important;right:12px!important;bottom:44px!important;}
+.animated-bunny .tail{right:auto!important;left:0!important;bottom:15px!important;}
+.animated-bunny .paw{left:46px!important;bottom:-2px!important;}
+.bunny-cinema.is-hopping .animated-bunny .body,
+.bunny-cinema.is-hopping .animated-bunny .head,
+.bunny-cinema.is-hopping .animated-bunny .tail,
+.bunny-cinema.is-hopping .animated-bunny .paw{animation:bunnyPartHop .78s cubic-bezier(.25,.9,.25,1);}
+.bunny-cinema.is-hopping .animated-bunny .ear{animation:bunnyEarHop .78s cubic-bezier(.25,.9,.25,1)!important;}
+.bunny-cinema.is-hopping .animated-bunny .body{animation-delay:.03s;}
+.bunny-cinema.is-hopping .animated-bunny .head{animation-delay:.06s;}
+.bunny-cinema.is-hopping .animated-bunny .tail{animation-delay:.02s;}
+.bunny-cinema.is-hopping .animated-bunny .paw{animation:bunnyPawHop .78s cubic-bezier(.25,.9,.25,1)!important;}
+@keyframes bunnyPartHop{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-26px) scale(1.015)}62%{transform:translateY(-10px) scale(.995)}}
+@keyframes bunnyEarHop{0%,100%{transform:translateY(0) rotate(12deg)}35%{transform:translateY(-32px) rotate(5deg)}62%{transform:translateY(-12px) rotate(18deg)}}
+@keyframes bunnyPawHop{0%{transform:translate(0,0) scaleX(1)}35%{transform:translate(10px,-19px) scaleX(.86)}76%{transform:translate(18px,0) scaleX(1.18)}100%{transform:translate(0,0) scaleX(1)}}
+.bunny-cinema.is-hopping .bunny-trail i{animation:trailPulse .9s ease;}
+@keyframes trailPulse{35%{box-shadow:0 0 24px rgba(216,199,163,.72);transform:scale(1.35)}}
+.bunny-cinema[data-scene="feeling"] .animated-bunny{left:15%;bottom:24%;transform:scale(.96) rotate(0deg)}
+.bunny-cinema[data-scene="collecting"] .animated-bunny{left:31%;bottom:32%;transform:scale(1.02) rotate(2deg)}
+.bunny-cinema[data-scene="translating"] .animated-bunny{left:45%;bottom:25%;transform:scale(1.04) rotate(-1deg)}
+.bunny-cinema[data-scene="building"] .animated-bunny{left:58%;bottom:34%;transform:scale(.99) rotate(1deg)}
+.bunny-cinema[data-scene="refining"] .animated-bunny{left:68%;bottom:25%;transform:scale(.92) rotate(0deg)}
+.bunny-cinema[data-scene="releasing"] .animated-bunny{left:79%;bottom:26%;transform:scale(.86) rotate(1deg);opacity:.78}
+.bunny-cinema[data-scene="jenny"] .animated-bunny{left:50%;bottom:30%;transform:translateX(-50%) scale(1.08)}
+.bunny-caption p{max-width:min(620px,78vw)}
+@media(max-width:760px){
+  .animated-bunny .head{bottom:21px!important}.animated-bunny .eye{bottom:36px!important;right:10px!important}.animated-bunny .tail{bottom:12px!important}.animated-bunny .paw{left:37px!important}
+  .bunny-cinema[data-scene="feeling"] .animated-bunny{left:10%;bottom:25%}.bunny-cinema[data-scene="collecting"] .animated-bunny{left:26%;bottom:34%}.bunny-cinema[data-scene="translating"] .animated-bunny{left:42%;bottom:28%}.bunny-cinema[data-scene="building"] .animated-bunny{left:54%;bottom:39%}.bunny-cinema[data-scene="refining"] .animated-bunny{left:64%;bottom:31%}.bunny-cinema[data-scene="releasing"] .animated-bunny{left:74%;bottom:27%}
+}
+
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div id="scroll-progress">
+  <div class="scroll-dot active" onclick="scrollToSection('hero')"></div>
+  <div class="scroll-dot" onclick="scrollToSection('work')"></div>
+  <div class="scroll-dot" onclick="scrollToSection('profile')"></div>
+  <div class="scroll-dot" onclick="scrollToSection('exploration')"></div>
+  <div class="scroll-dot" onclick="scrollToSection('studio')"></div>
+  <div class="scroll-dot" onclick="scrollToSection('contact')"></div>
+</div>
+
+<!-- NAVIGATION -->
+<nav>
+  <a href="#hero" class="nav-logo">JZ</a>
+  <div class="nav-links">
+    <a href="#work">Portfolio</a>
+    <a href="#profile">Profile</a>
+    <a href="#exploration">Exploration</a>
+    <a href="#studio">Process</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-right">
+    <span>Based in Melbourne</span>
+    <div class="nav-dot"></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas class="star-canvas" id="star-canvas"></canvas>
+  <div class="hero-left">
+    <div class="hero-vlabel">COMMUNICATION DESIGNER</div>
+    <div class="hero-coords">37.8136° S, 144.9631° E</div>
+    <h1 class="hero-name">
+      <span>JENNY</span>
+      <span><em>ZHANG</em></span>
+    </h1>
+    <p class="hero-subtitle">Communication Design · Visual Systems · Experiments</p>
+    <p class="hero-desc">A quiet portfolio of visual identities, print systems, music-led concepts and design explorations.</p>
+    <div class="star-meta" aria-label="Birth star detail"><span class="star-symbol">✦</span><span class="star-text">Antares · Scorpio · South / 180° · 31.10.2004</span></div>
+    <a href="#work" class="hero-cta">View Portfolio <div class="cta-circle">+</div></a>
+
+    <div class="bunny-hero">
+      <svg class="bunny-glow" width="36" height="42" viewBox="0 0 36 42" fill="none" aria-hidden="true">
+        <ellipse cx="18" cy="28" rx="11" ry="10" stroke="rgba(255,255,255,.55)" stroke-width=".7" fill="none"/>
+        <ellipse cx="18" cy="22" rx="6.5" ry="6" stroke="rgba(255,255,255,.55)" stroke-width=".7" fill="none"/>
+        <path d="M12 21 C9 19,7 17,8 13 C9 10,11 10,12 12" stroke="rgba(255,255,255,.45)" stroke-width=".6" fill="none" stroke-linecap="round"/>
+        <path d="M24 21 C27 19,29 17,28 13 C27 10,25 10,24 12" stroke="rgba(255,255,255,.45)" stroke-width=".6" fill="none" stroke-linecap="round"/>
+        <circle cx="15.5" cy="21" r=".8" fill="rgba(255,255,255,.6)"/>
+        <circle cx="20.5" cy="21" r=".8" fill="rgba(255,255,255,.6)"/>
+        <ellipse cx="18" cy="23.5" rx="1" ry=".6" fill="rgba(255,255,255,.35)"/>
+        <ellipse cx="18" cy="39" rx="9" ry="2.5" fill="rgba(255,255,255,.06)"/>
+        <circle cx="6" cy="12" r=".8" fill="rgba(255,255,255,.5)"/>
+        <circle cx="30" cy="8" r=".6" fill="rgba(255,255,255,.4)"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="beam"></div>
+    <div class="sigil-container" id="sigil-wrap">
+      <svg id="sigil-svg" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g class="sigil-orbit-1">
+          <ellipse cx="210" cy="210" rx="190" ry="60" stroke="rgba(255,255,255,.07)" stroke-width=".5"/>
+          <circle cx="210" cy="150" r="2.5" fill="rgba(255,255,255,.35)"/>
+          <circle cx="210" cy="270" r="2.5" fill="rgba(255,255,255,.35)"/>
+          <circle cx="20" cy="210" r="1.5" fill="rgba(255,255,255,.25)"/>
+          <circle cx="400" cy="210" r="1.5" fill="rgba(255,255,255,.25)"/>
+          <line x1="80" y1="170" x2="87" y2="174" stroke="rgba(255,255,255,.18)" stroke-width=".5"/>
+          <line x1="333" y1="246" x2="340" y2="250" stroke="rgba(255,255,255,.18)" stroke-width=".5"/>
+        </g>
+        <g class="sigil-orbit-2">
+          <ellipse cx="210" cy="210" rx="135" ry="43" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+          <circle cx="75" cy="210" r="2.5" fill="rgba(255,255,255,.4)"/>
+          <circle cx="345" cy="210" r="2.5" fill="rgba(255,255,255,.4)"/>
+        </g>
+        <g class="sigil-orbit-3">
+          <ellipse cx="210" cy="210" rx="82" ry="25" stroke="rgba(255,255,255,.15)" stroke-width=".5"/>
+        </g>
+        <g transform="translate(210,210)">
+          <polygon points="0,-30 20,0 0,30 -20,0" stroke="rgba(255,255,255,.55)" stroke-width=".7" fill="none"/>
+          <line x1="0" y1="-22" x2="0" y2="22" stroke="rgba(255,255,255,.22)" stroke-width=".5"/>
+          <line x1="-22" y1="0" x2="22" y2="0" stroke="rgba(255,255,255,.22)" stroke-width=".5"/>
+          <circle cx="0" cy="0" r="3.5" fill="rgba(255,255,255,.85)"/>
+          <circle cx="0" cy="0" r="9" stroke="rgba(255,255,255,.2)" stroke-width=".5" fill="none"/>
+        </g>
+        <line x1="210" y1="22" x2="210" y2="180" stroke="rgba(255,255,255,.16)" stroke-width=".5"/>
+        <line x1="210" y1="240" x2="210" y2="398" stroke="rgba(255,255,255,.16)" stroke-width=".5"/>
+        <line x1="65" y1="210" x2="128" y2="210" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+        <line x1="292" y1="210" x2="355" y2="210" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+        <circle cx="52" cy="95" r="1.3" fill="rgba(255,255,255,.55)" style="animation:starPulse 3.1s ease-in-out infinite"/>
+        <circle cx="350" cy="78" r="1.6" fill="rgba(255,255,255,.4)" style="animation:starPulse 4.2s ease-in-out .5s infinite"/>
+        <circle cx="66" cy="325" r="1.1" fill="rgba(255,255,255,.35)" style="animation:starPulse 2.8s ease-in-out 1s infinite"/>
+        <circle cx="362" cy="335" r="1.9" fill="rgba(255,255,255,.5)" style="animation:starPulse 3.7s ease-in-out .2s infinite"/>
+        <circle cx="168" cy="62" r="1.1" fill="rgba(255,255,255,.3)" style="animation:starPulse 5s ease-in-out .8s infinite"/>
+        <circle cx="258" cy="355" r="1.1" fill="rgba(255,255,255,.3)" style="animation:starPulse 4.5s ease-in-out 1.4s infinite"/>
+        <g transform="translate(48,48)"><line x1="-7" y1="0" x2="7" y2="0" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="0" y1="-7" x2="0" y2="7" stroke="rgba(255,255,255,.2)" stroke-width=".5"/></g>
+        <g transform="translate(372,372)"><line x1="-7" y1="0" x2="7" y2="0" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="0" y1="-7" x2="0" y2="7" stroke="rgba(255,255,255,.2)" stroke-width=".5"/></g>
+        <g transform="translate(372,48)"><line x1="-5" y1="0" x2="5" y2="0" stroke="rgba(255,255,255,.15)" stroke-width=".5"/><line x1="0" y1="-5" x2="0" y2="5" stroke="rgba(255,255,255,.15)" stroke-width=".5"/></g>
+      </svg>
+    </div>
+    <div class="scroll-label">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SELECTED WORK -->
+<section id="work">
+  <div class="section-header reveal">
+    <div class="section-title">Selected Work</div>
+    <a href="#contact" class="section-link">Explore More →</a>
+  </div>
+  <div class="project-grid reveal">
+
+    <!-- 01 Little Picco's -->
+    <button class="project-card" data-project="little-piccos" aria-label="Open Little Picco's case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">01</span>
+        <div class="card-dot"></div>
+        <img src="assets/images/little-piccos-main.jpg" alt="Little Picco's bakery branding and packaging" loading="eager">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Bakery &amp; Café Branding</div>
+        <div class="card-title">Little Picco's</div>
+        <div class="card-desc">A playful neighbourhood bakery system with red packaging, character-led illustration, café signage and tactile brand applications.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+
+    <!-- 02 After Midnight -->
+    <button class="project-card" data-project="after-midnight" aria-label="Open After Midnight case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">02</span>
+        <div class="card-dot"></div>
+        <img src="assets/images/after-midnight-main.jpg" alt="After Midnight event identity and wristband system" loading="eager">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Brand Identity &amp; Event Design</div>
+        <div class="card-title">After Midnight</div>
+        <div class="card-desc">A monochrome late-night music identity using expressive script, raw texture, wristbands, posters and social media applications.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+
+    <!-- 03 Postage & Stationery -->
+    <button class="project-card" data-project="postage-stationery" aria-label="Open Postage and Stationery case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">03</span>
+        <div class="card-dot"></div>
+        <img src="assets/images/postage-stationery-main.jpg" alt="Postage and stationery concept design" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Concept Design</div>
+        <div class="card-title">Postage &amp; Stationery</div>
+        <div class="card-desc">A delicate print system combining postal nostalgia, soft illustration, moonlit imagery and tactile presentation.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+
+    <!-- 04 Soul Tides -->
+    <button class="project-card" data-project="soul-tides" aria-label="Open Soul Tides case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">04</span>
+        <div class="card-dot"></div>
+        <img src="assets/images/soul-tides-main.jpg" alt="Soul Tides vinyl listening bar brand" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Brand Identity &amp; Environmental Design</div>
+        <div class="card-title">Soul Tides</div>
+        <div class="card-desc">A vinyl listening bar that turns shoegaze, dream pop and grunge into a moody spatial identity system.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+
+    <!-- 05 Dottie — Unreleased -->
+    <button class="project-card featured" data-project="dottie" aria-label="Open Dottie case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">05</span>
+        <div class="card-dot"></div>
+        <div class="card-unreleased">Unreleased</div>
+        <img src="assets/images/dottie-main.jpg" alt="Dottie East Coast Tour 2026 poster and temporary tattoo system" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Tour Merchandise &amp; Print</div>
+        <div class="card-title">Dottie</div>
+        <div class="card-desc">East Coast Tour 2026. Tour poster, temporary tattoos, merch apparel and tote bags for Melbourne indie artist Dottie.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+
+    <!-- 06 Print & Editorial -->
+    <button class="project-card" data-project="print-editorial" aria-label="Open Print and Editorial case study">
+      <div class="card-border-glow"></div>
+      <div class="card-image">
+        <span class="card-num">06</span>
+        <div class="card-dot"></div>
+        <img src="assets/images/print-editorial-main.jpg" alt="Print and editorial design collection" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div class="card-category">Visual Communication</div>
+        <div class="card-title">Print &amp; Editorial</div>
+        <div class="card-desc">A collection of editorial, printed and experimental communication design outcomes, exploring typography, texture and atmosphere.</div>
+        <span class="card-action">Open case study <span class="card-arrow">→</span></span>
+      </div>
+    </button>
+  </div>
+
+  <section id="project-detail" aria-live="polite">
+    <button class="detail-close" type="button" aria-label="Close case study">×</button>
+    <div class="detail-shell">
+      <div class="detail-copy">
+        <div class="detail-kicker" id="detail-kicker">Case Study</div>
+        <h2 class="detail-title" id="detail-title"></h2>
+        <div class="detail-meta">
+          <span id="detail-category"></span>
+          <span id="detail-year"></span>
+        </div>
+        <p class="detail-description" id="detail-description"></p>
+        <div class="detail-thumbs" id="detail-tags"></div>
+      </div>
+      <div class="detail-gallery" id="detail-gallery"></div>
+    </div>
+  </section>
+</section>
+
+<!-- DESIGNER PROFILE -->
+<section id="profile">
+  <div class="profile-shell reveal">
+    <div class="profile-image">
+      <img src="assets/images/biography-photo.jpg" alt="Portrait of Jenny Zhang" loading="lazy">
+    </div>
+    <div class="profile-content">
+      <p class="profile-kicker">designer profile</p>
+      <h2 class="profile-title">I'm Jenny Zhang,<br>a Melbourne-based<br>designer and<br>illustrator.</h2>
+      <p class="profile-copy">I’m a Melbourne-based designer and illustrator with a Bachelor of Communication Design from RMIT University. My practice is driven by personality and emotion, using design as a way to translate feeling into visual form.</p>
+      <p class="profile-copy">I love creating visuals that feel lived-in, textured and expressive. I approach each project with the belief that design is most impactful when it reflects the stories and context behind it, ensuring each outcome feels authentic and intentional.</p>
+      <div class="profile-notes">
+        <span><strong>Education</strong> RMIT University</span>
+        <span><strong>Location</strong> Melbourne, AU</span>
+        <span><strong>Discipline</strong> Communication Design</span>
+        <span><strong>Focus</strong> Brand · Editorial · Spatial</span>
+      </div>
+      <a href="#exploration" class="bio-more">More about me +</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPLORATION -->
+
+<section id="exploration">
+  <div class="section-header reveal">
+    <div class="section-title">Exploration</div>
+    <span class="section-link">Soft studies · printed moods · music worlds</span>
+  </div>
+
+  <div class="exploration-intro reveal">
+    <p class="explore-kicker">a quiet notebook of experiments</p>
+    <h2>Small visual worlds shaped by sound, texture, memory and atmosphere.</h2>
+    <p>These are not separate services or heavy case-study blocks. They are softer entries into Jenny’s visual practice — small clickable notes that open into stories about how the work begins, drifts, changes and becomes a finished mood.</p>
+  </div>
+
+  <div class="explore-inline reveal" aria-label="Exploration options">
+    <button class="explore-link active" type="button" data-target="identity">Identity studies</button>
+    <button class="explore-link" type="button" data-target="music">Music worlds</button>
+    <button class="explore-link" type="button" data-target="print">Printed objects</button>
+    <button class="explore-link" type="button" data-target="editorial">Editorial atmospheres</button>
+    <button class="explore-link" type="button" data-target="packaging">Packaging moments</button>
+    <button class="explore-link" type="button" data-target="type">Type experiments</button>
+  </div>
+
+  <div class="exploration-list reveal">
+    <article class="explore-item open" data-explore="identity">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 01 · identity studies</p><h3>Visual identities that feel handmade, slightly off-centre and emotionally specific.</h3><p>Jenny’s identity work often starts before there is a logo. It begins with a feeling: the colour of a room, the softness of packaging paper, the way a sign might look under afternoon light, or how a tiny illustrated character can make a brand feel less distant.</p><p>In projects like Little Picco’s and Soul Tides, the identity becomes a small world. The marks, posters, menus and objects are not treated as separate outcomes — they are fragments of the same atmosphere.</p><div class="explore-blog"><h4>Note from the process</h4><p>I like when a brand feels as if someone has touched every part of it gently. Not perfect, not over-polished, but considered. For these identity studies, I kept returning to small details: a rounded corner, a strange little face, a soft colour that almost disappears.</p><p>The work becomes interesting when it starts to feel lived in. I want the viewer to imagine the place before they enter it — the smell of bread, the sound of a record, the quiet pause before someone picks up a printed card.</p></div><div class="explore-tags"><span>Brand mood</span><span>Type pairing</span><span>Graphic systems</span><span>Character detail</span></div></div><div class="explore-images"><img src="assets/images/little-piccos-main.jpg" alt="Little Piccos identity work"><img src="assets/images/soul-tides-main.jpg" alt="Soul Tides identity work"></div></div>
+    </article>
+
+    <article class="explore-item" data-explore="music">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 02 · music worlds</p><h3>Design language for songs that feel blurred at the edges.</h3><p>This direction leans into shoegaze: washed contrast, dim light, grain, repetition and slow emotional build. The work avoids loud music graphics and instead uses atmosphere, negative space and fragile typography to suggest sound.</p><p>After Midnight, Dottie and Soul Tides sit in this space — posters, tour pieces, vinyl-bar moments and visual systems that feel like walking home after a gig with your ears still ringing.</p><div class="explore-blog"><h4>Writing through sound</h4><p>I think music-led design should feel like a memory of the song, not a literal poster for it. I kept thinking about distortion as something soft, not aggressive — a layer of haze over text, a photograph that feels slightly lost, a composition that lets silence sit inside it.</p><p>The shoegaze feeling comes through in the pacing. Nothing needs to shout. The type can be thin, the contrast can be low, and the image can almost fade away. That almost-disappearing quality is where the emotion sits.</p></div><div class="explore-tags"><span>Gig posters</span><span>Tour objects</span><span>Dream pop mood</span><span>Monochrome texture</span></div></div><div class="explore-images"><img src="assets/images/after-midnight-main.jpg" alt="After Midnight music identity"><img src="assets/images/dottie-main.jpg" alt="Dottie tour merchandise"></div></div>
+    </article>
+
+    <article class="explore-item" data-explore="print">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 03 · printed objects</p><h3>Objects that feel collected, kept and found again later.</h3><p>Print gives the portfolio its physical softness. These explorations look at how postcards, labels, stamps, menus and merch can hold a story without needing to explain too much.</p><p>The work uses paper grain, small margins, soft illustration and muted contrast to make each object feel like it belongs to a private archive.</p><div class="explore-blog"><h4>Things people keep</h4><p>I’m drawn to design that can be held. A card, a ticket, a menu or a label can become a souvenir even when it was only meant to be useful. The printed object carries the memory of where it came from.</p><p>For these pieces, I wanted the work to feel quiet enough to sit in a drawer, between books, or pinned near a desk. The edges, spacing and paper-like textures matter because they make the design feel less like a screen and more like a trace.</p></div><div class="explore-tags"><span>Stationery</span><span>Postcards</span><span>Menus</span><span>Merch print</span></div></div><div class="explore-images"><img src="assets/images/postage-stationery-main.jpg" alt="Postage and stationery print work"><img src="assets/images/postage-stationery-detail-01.png" alt="Stationery detail"></div></div>
+    </article>
+
+    <article class="explore-item" data-explore="editorial">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 04 · editorial atmospheres</p><h3>Layouts that move slowly, with room for silence.</h3><p>The editorial work focuses on pacing: image to text, blank space to density, small details to full-page atmosphere. Rather than feeling polished in a commercial way, the layouts stay quiet and cinematic.</p><p>These studies connect Jenny’s print, identity and music-led projects by showing how composition can create a mood before a viewer reads a single word.</p><div class="explore-blog"><h4>On pacing a page</h4><p>When I work with layout, I think about rhythm more than decoration. Some pages need to feel like a held breath. Some need repetition. Some need one small image sitting in a wide empty field so the viewer slows down.</p><p>The quiet space is not empty to me. It is where the work starts to sound different — like the pause between tracks, or the last light in a room after the noise has stopped.</p></div><div class="explore-tags"><span>Typography</span><span>Composition</span><span>Image rhythm</span><span>Quiet hierarchy</span></div></div><div class="explore-images"><img src="assets/images/print-editorial-main.jpg" alt="Print editorial layout"><img src="assets/images/print-editorial-detail-01.jpg" alt="Editorial detail"></div></div>
+    </article>
+
+    <article class="explore-item" data-explore="packaging">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 05 · packaging moments</p><h3>Packaging treated as a tiny scene, not just a container.</h3><p>These studies explore the emotional side of packaging: what someone sees first, what they hold, what they notice after a second look. The design is simple, but the details carry personality.</p><p>Across café and product-style work, Jenny uses repetition, soft colour, little symbols and character-led marks to make everyday objects feel more personal.</p><div class="explore-blog"><h4>Small rituals</h4><p>I like packaging when it becomes part of a routine: opening something, folding it, carrying it, keeping it for no clear reason. The design has to work quickly, but it can still leave behind a small feeling.</p><p>For Little Picco’s, the packaging is playful without becoming too loud. The character details and softened colours are there to make the object feel familiar, like something you would want to pick up again.</p></div><div class="explore-tags"><span>Café packaging</span><span>Labels</span><span>Texture</span><span>Illustrated details</span></div></div><div class="explore-images"><img src="assets/images/little-piccos-detail-01.jpg" alt="Packaging detail one"><img src="assets/images/little-piccos-detail-02.jpg" alt="Packaging detail two"></div></div>
+    </article>
+
+    <article class="explore-item" data-explore="type">
+      <div class="explore-body"><div class="explore-copy"><p class="explore-label">entry 06 · type experiments</p><h3>Typography that feels like a voice coming through a wall.</h3><p>Jenny’s type experiments move between delicate serif forms, expressive scripts and clean supporting systems. The aim is not to make type decorative, but to make it hold tone: nostalgic, strange, soft, romantic or slightly distorted.</p><p>This is where the shoegaze influence becomes visual — letters as atmosphere, hierarchy as volume, spacing as reverb.</p><div class="explore-blog"><h4>Letters as atmosphere</h4><p>Sometimes the type needs to feel close and readable. Sometimes it should feel distant, like it is arriving through a layer of noise. I like testing how far a word can be softened before it stops communicating and starts becoming mood.</p><p>The scripts, serifs and narrow supporting type create a contrast that feels romantic but slightly unstable. That tension is important — it keeps the work from becoming too neat.</p></div><div class="explore-tags"><span>Serif studies</span><span>Script contrast</span><span>Display type</span><span>Visual tone</span></div></div><div class="explore-images"><img src="assets/images/after-midnight-detail-01.jpg" alt="Typography poster detail"><img src="assets/images/dottie-detail-01.jpg" alt="Tour type detail"></div></div>
+    </article>
+  </div>
+</section>
+
+<section id="studio" class="creative-process-section bunny-process-section">
+  <div class="section-title">Creative Process</div>
+  <div class="bunny-process-wrap reveal">
+    <div class="bunny-copy-top">
+      <p class="eyebrow">A small moving story</p>
+      <h2>Jenny’s creative process, told through a bunny.</h2>
+      <p>Click each step or press play. The rabbit faces forward and jumps from one process moment to the next as Jenny observes, collects, distills, designs, refines and releases a visual world.</p>
+    </div>
+    <div class="bunny-process-nav" aria-label="Creative process steps">
+      <button class="bunny-step active" type="button" data-scene="feeling"><em>01</em> Observe</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="collecting"><em>02</em> Collect</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="translating"><em>03</em> Distill</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="building"><em>04</em> Design</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="refining"><em>05</em> Refine</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="releasing"><em>06</em> Release</button><span>·</span>
+      <button class="bunny-step" type="button" data-scene="jenny">Jenny’s story</button>
+    </div>
+    <div class="bunny-cinema" id="bunny-cinema" data-scene="feeling">
+      <div class="cinema-bg"><span class="grain-dot d1"></span><span class="grain-dot d2"></span><span class="grain-dot d3"></span><span class="grain-dot d4"></span></div>
+      <div class="scene-object moon"></div><div class="scene-object paper p1"></div><div class="scene-object paper p2"></div><div class="scene-object paper p3"></div><div class="scene-object pencil"></div><div class="scene-object grid-lines"></div><div class="scene-object doorway"></div><div class="scene-object stars"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="bunny-words"><span class="w1">mood</span><span class="w2">fragments</span><span class="w3">visual language</span><span class="w4">system</span><span class="w5">release</span></div>
+      <div class="bunny-path"></div><div class="bunny-trail"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="animated-bunny" aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="head"></span><span class="eye"></span><span class="body"></span><span class="tail"></span><span class="paw"></span></div>
+      <div class="bunny-caption"><span id="scene-count">01</span><p id="scene-line" class="type-cursor">Observe — Jenny watches the world without agenda before the first mark is made.</p></div>
+    </div>
+    <div class="process-microcopy" id="process-microcopy"><p><strong>Observe</strong> — Jenny watches the world without agenda. She collects impressions, feelings and textures before any mark is made.</p></div>
+    <div class="bunny-autoplay"><button type="button" id="bunny-play">play story</button><span>· pointer responsive</span></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-col reveal">
+    <div class="contact-section-title">Let's Connect <span style="opacity:.3">+</span></div>
+    <a class="contact-item" href="mailto:dystopxia@outlook.com"><span class="contact-icon">✉</span><span class="contact-label">Email</span><span class="contact-val">dystopxia@outlook.com</span></a>
+    <a class="contact-item" href="tel:0404914528"><span class="contact-icon">◎</span><span class="contact-label">Phone</span><span class="contact-val">0404 914 528</span></a>
+    <a class="contact-item" href="https://instagram.com/dystopxias" target="_blank" rel="noopener"><span class="contact-icon">◇</span><span class="contact-label">Instagram</span><span class="contact-val">@dystopxias</span></a>
+    <div style="margin-top:32px;opacity:.5">
+      <svg class="bunny-glow" width="28" height="32" viewBox="0 0 28 32" fill="none" aria-hidden="true">
+        <ellipse cx="14" cy="22" rx="8" ry="7" stroke="rgba(255,255,255,.5)" stroke-width=".6" fill="none"/>
+        <ellipse cx="14" cy="16" rx="5" ry="4.5" stroke="rgba(255,255,255,.5)" stroke-width=".6" fill="none"/>
+        <path d="M10 15 C8 13.5,7 12,7.5 9.5 C8 8,9 8,9.5 9" stroke="rgba(255,255,255,.35)" stroke-width=".5" fill="none" stroke-linecap="round"/>
+        <path d="M18 15 C20 13.5,21 12,20.5 9.5 C20 8,19 8,18.5 9" stroke="rgba(255,255,255,.35)" stroke-width=".5" fill="none" stroke-linecap="round"/>
+        <circle cx="12" cy="15.5" r=".7" fill="rgba(255,255,255,.55)"/>
+        <circle cx="16" cy="15.5" r=".7" fill="rgba(255,255,255,.55)"/>
+        <ellipse cx="14" cy="30.5" rx="7" ry="1.8" fill="rgba(255,255,255,.05)"/>
+      </svg>
+    </div>
+  </div>
+  <div class="contact-col reveal">
+    <div class="contact-section-title">Let's Work Together <span style="opacity:.3">+</span></div>
+    <p class="contact-avail">For project enquiries, collaborations or portfolio questions, feel free to get in touch.</p>
+    <a href="mailto:dystopxia@outlook.com" class="btn-project">Send an Inquiry →</a>
+  </div>
+  <div class="contact-big reveal">
+    <a href="mailto:dystopxia@outlook.com" class="big-cta">START A<br>PROJECT</a>
+    <div style="margin-top:24px;display:flex;gap:6px;align-items:center">
+      <div style="width:40px;height:.5px;background:var(--border)"></div>
+      <span style="font-size:8px;letter-spacing:.16em;color:rgba(107,107,107,.5);text-transform:uppercase">Melbourne, AU</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© Jenny Zhang <span id="year"></span></span>
+  <div class="footer-center">
+    <svg class="bunny-glow" width="18" height="20" viewBox="0 0 18 20" fill="none" aria-hidden="true">
+      <ellipse cx="9" cy="14" rx="5" ry="4.5" stroke="rgba(255,255,255,.35)" stroke-width=".6" fill="none"/>
+      <ellipse cx="9" cy="10" rx="3.2" ry="3" stroke="rgba(255,255,255,.35)" stroke-width=".6" fill="none"/>
+      <path d="M6.5 9.5 C5.2 8.5,4.5 7.5,5 5.8 C5.4 4.5,6.2 4.5,6.5 5.5" stroke="rgba(255,255,255,.25)" stroke-width=".5" fill="none" stroke-linecap="round"/>
+      <path d="M11.5 9.5 C12.8 8.5,13.5 7.5,13 5.8 C12.6 4.5,11.8 4.5,11.5 5.5" stroke="rgba(255,255,255,.25)" stroke-width=".5" fill="none" stroke-linecap="round"/>
+    </svg>
+    <svg width="60" height="14" viewBox="0 0 60 14" fill="none" aria-hidden="true" style="opacity:.3">
+      <line x1="0" y1="7" x2="24" y2="7" stroke="rgba(255,255,255,.4)" stroke-width=".5"/>
+      <circle cx="30" cy="7" r="3" stroke="rgba(255,255,255,.4)" stroke-width=".5" fill="none"/>
+      <circle cx="30" cy="7" r="1" fill="rgba(255,255,255,.5)"/>
+      <line x1="36" y1="7" x2="60" y2="7" stroke="rgba(255,255,255,.4)" stroke-width=".5"/>
+    </svg>
+    <span>Designing connections. Building experiences.</span>
+  </div>
+  <span>Made with intention.</span>
+
+  <p class="copyright-notice">© Jenny Zhang — All work is protected and not permitted for reuse without consent.</p>
+</footer>
+
+<script>
+  const projectDetails = {
+    'little-piccos': {title:"Little Picco's",kicker:'Case Study 01',category:'Bakery & Café Branding',year:'2026',tags:['Identity','Packaging','Character System','Café Touchpoints'],description:`Little Picco’s is a playful take on the neighbourhood bakery and café, built around making everyday rituals feel a little more memorable. The identity uses a simple but expressive visual language, combining softened primary colours, a character-led system and a slightly quirky slab serif to create something both familiar and distinctive.\n\nThe design balances clarity with personality, keeping forms clean while introducing small moments of charm through the mascot and graphic details. Applied across packaging, menus, signage and in-store elements, the system is designed to be flexible and consistent, creating a cohesive brand experience across every touchpoint.`,images:['assets/images/little-piccos-detail-01.jpg','assets/images/little-piccos-detail-02.jpg','assets/images/little-piccos-detail-03.jpg','assets/images/little-piccos-main.jpg']},
+    'after-midnight': {title:'After Midnight',kicker:'Case Study 02',category:'Brand Identity & Event Design',year:'2026',tags:['Event Identity','Posters','Wristbands','Social Media'],description:`After Midnight is a live music event identity designed for Melbourne’s alternative and experimental music scene. The visual language pairs a refined, expressive script with a clean grotesk sans serif, creating a minimal yet striking contrast that feels both grunge and chic. Monochrome tones and subtle textures give the identity a tactile, late-night atmosphere without relying on colour or embellishment.\n\nApplied across posters, wristbands and social media, the system builds a cohesive experience that reflects the energy of experimental electropop and grunge-influenced music. The identity prioritises mood and presence, inviting audiences into immersive, stylish late-night music experiences.`,images:['assets/images/after-midnight-detail-01.jpg','assets/images/after-midnight-detail-02.jpg','assets/images/after-midnight-main.jpg']},
+    'soul-tides': {title:'Soul Tides',kicker:'Case Study 03',category:'Brand Identity & Environmental Design',year:'2025',tags:['Spatial Identity','Hospitality','Vinyl Bar','Environmental Graphics'],description:`Soul Tides Vinyl Listening Bar transforms the atmosphere of shoegaze, dream pop and grunge music into a visual identity that is intimate, warm and immersive. Moving away from harsh contrasts and cool tones that are typically associated with these genres, the brand features muted greens, soft warm lighting and textures that feel lived-in. Every element, from posters and coasters to merch and environmental mockups, is designed to create a cohesive experience that balances grunge edge with comfort and nostalgia.\n\nThe identity reflects the emotional depth of the music while making the bar feel approachable, personal and memorable. This project demonstrates how visual design can translate mood, sound and storytelling into a fully realised brand experience.`,images:['assets/images/soul-tides-detail-01.jpg','assets/images/soul-tides-detail-02.jpg','assets/images/soul-tides-main.jpg']},
+    'postage-stationery': {title:'Postage & Stationery',kicker:'Case Study 04',category:'Concept Design',year:'2025',tags:['Illustration','Stationery','Postcards','Narrative'],description:`A delicate print and stationery system built around illustrated postcards, moonlit stamps and quiet handwritten storytelling. The project uses rabbits, nighttime landscapes and postal textures to create a soft narrative world that feels personal, nostalgic and collectible.`,images:['assets/images/postage-stationery-detail-01.png','assets/images/postage-stationery-main.jpg']},
+    'dottie': {title:'Dottie',kicker:'Case Study 05',category:'Tour Merchandise & Print',year:'2026',tags:['Tour Poster','Temporary Tattoos','Merchandise','Print System'],description:`A tactile brand world for Dottie’s East Coast Tour 2026, including a tour poster, temporary tattoo sheets, apparel concepts and tote bag applications. The visual direction uses pale paper texture, soft ornamental linework and gothic-leaning script to create a romantic indie music identity.`,images:['assets/images/dottie-detail-01.jpg','assets/images/dottie-main.jpg']},
+    'print-editorial': {title:'Print & Editorial',kicker:'Case Study 06',category:'Visual Communication',year:'2025',tags:['Typography','Editorial','Print','Experimental'],description:`A collection of editorial and print-based outcomes exploring composition, visual rhythm, atmospheric texture and communication systems. This archive captures the quieter experiments that connect Jenny’s brand, spatial and music-led work.`,images:['assets/images/print-editorial-detail-01.jpg','assets/images/print-editorial-main.jpg']}
+  };
+  function openProjectDetail(key){const data=projectDetails[key];if(!data)return;const detail=document.getElementById('project-detail');document.getElementById('detail-kicker').textContent=data.kicker;document.getElementById('detail-title').textContent=data.title;document.getElementById('detail-category').textContent=data.category;document.getElementById('detail-year').textContent=data.year;document.getElementById('detail-description').textContent=data.description;document.getElementById('detail-tags').innerHTML=data.tags.map(tag=>`<span class="detail-pill">${tag}</span>`).join('');document.getElementById('detail-gallery').innerHTML=data.images.map((src,index)=>`<figure class="${index===0?'wide':''}"><img src="${src}" alt="${data.title} project image ${index+1}" loading="lazy"></figure>`).join('');detail.classList.add('open');detail.scrollIntoView({behavior:'smooth',block:'start'});}
+  function closeProjectDetail(){document.getElementById('project-detail').classList.remove('open');}
+
+
+
+  // EXPLORATION INLINE EXPAND
+  const exploreLinks=document.querySelectorAll('.explore-link');
+  const exploreItems=document.querySelectorAll('.explore-item');
+  exploreLinks.forEach(link=>{
+    link.addEventListener('click',()=>{
+      const target=link.dataset.target;
+      exploreLinks.forEach(item=>item.classList.remove('active'));
+      link.classList.add('active');
+      exploreItems.forEach(item=>{
+        item.classList.toggle('open', item.dataset.explore===target);
+      });
+      const openItem=document.querySelector(`.explore-item[data-explore="${target}"]`);
+      if(openItem){setTimeout(()=>openItem.scrollIntoView({behavior:'smooth',block:'center'}),60);}
+    });
+  });
+
+  // YEAR
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // CURSOR
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  const isMobile = window.matchMedia('(max-width:768px)').matches;
+  let mx=0,my=0,rx=0,ry=0;
+  if(!isMobile){
+    document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+    (function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
+    document.addEventListener('mousedown',e=>{cursor.style.transform='translate(-50%,-50%) scale(0.7)';ring.style.width='48px';ring.style.height='48px';clickGlow(e.clientX,e.clientY)});
+    document.addEventListener('mouseup',()=>{cursor.style.transform='translate(-50%,-50%) scale(1)';ring.style.width='36px';ring.style.height='36px'});
+    document.querySelectorAll('a,button,.project-card,.archive-item,.explore-head').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{ring.style.width='52px';ring.style.height='52px';ring.style.borderColor='rgba(255,255,255,.55)'});
+      el.addEventListener('mouseleave',()=>{ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(255,255,255,.35)'});
+    });
+  } else {cursor.style.display='none';ring.style.display='none';}
+
+  function clickGlow(x,y){const el=document.createElement('div');el.className='click-glow';el.style.left=x+'px';el.style.top=y+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),700)}
+
+  // PARALLAX HERO SIGIL — mouse tracking
+  const sigilWrap = document.getElementById('sigil-wrap');
+  let tiltX=0,tiltY=0,targetX=0,targetY=0;
+  if(!isMobile){
+    document.addEventListener('mousemove',e=>{
+      const vw=window.innerWidth,vh=window.innerHeight;
+      targetX=(e.clientX/vw-.5)*22;  // max 11deg each way
+      targetY=(e.clientY/vh-.5)*-16;
+    });
+    (function animSigil(){
+      tiltX+=(targetX-tiltX)*.06;
+      tiltY+=(targetY-tiltY)*.06;
+      if(sigilWrap){
+        sigilWrap.style.transform=`perspective(900px) rotateY(${tiltX}deg) rotateX(${tiltY}deg) translateX(${tiltX*0.5}px) translateY(${tiltY*0.5}px)`;
+      }
+      requestAnimationFrame(animSigil);
+    })();
+  }
+
+  // STARS
+  const canvas=document.getElementById('star-canvas');
+  const ctx=canvas.getContext('2d');
+  let stars=[];
+  function initStars(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;stars=Array.from({length:110},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+.3,a:Math.random(),speed:Math.random()*.008+.002,phase:Math.random()*Math.PI*2}))}
+  function drawStars(t){ctx.clearRect(0,0,canvas.width,canvas.height);stars.forEach(s=>{const alpha=s.a*(.4+.6*Math.abs(Math.sin(t*s.speed+s.phase)));ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${alpha})`;ctx.fill()});requestAnimationFrame(drawStars)}
+  initStars();window.addEventListener('resize',initStars);requestAnimationFrame(drawStars);
+
+// SCROLL REVEAL
+  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+
+  // CREATIVE PROCESS — visual bunny narration
+  const sceneOrder=['feeling','collecting','translating','building','refining','releasing','jenny'];
+  const sceneData = {
+    feeling:{n:'01',line:'Observe — Jenny watches the world without agenda before the first mark is made.',copy:'<strong>Observe</strong> — Watch the world without agenda. Jenny begins by noticing impressions, feelings and textures: the softness of light, the mood of a room, the quiet tension inside a brief. The bunny stays still here, listening before it moves.'},
+    collecting:{n:'02',line:'Collect — references, colours, sounds and memories become a private archive.',copy:'<strong>Collect</strong> — References, colours, sounds and memories gather beneath the surface. Jenny builds a private archive from small things: paper grain, type rhythm, odd shapes, gentle colour and lived-in details that can feed the work later.'},
+    translating:{n:'03',line:'Distill — she strips the idea back to the emotion it needs to carry.',copy:'<strong>Distill</strong> — Strip everything to its essential meaning. Jenny asks: what is this really about, and what emotion must it carry? The bunny leaves the clutter behind and keeps only the atmosphere that feels true.'},
+    building:{n:'04',line:'Design — feeling becomes form through typography, space and colour.',copy:'<strong>Design</strong> — Translate feeling into form. Typography becomes voice, space becomes pause, colour becomes memory. Jenny treats every decision as intentional and considered, so the work feels expressive but still resolved.'},
+    refining:{n:'05',line:'Refine — she adjusts the silence between elements until it feels inevitable.',copy:'<strong>Refine</strong> — Live with it. Jenny edits the noise, adjusts spacing, softens contrast and studies the silence between elements. The goal is not to make it look overworked, but to make it feel inevitable.'},
+    releasing:{n:'06',line:'Release — the work leaves the studio and begins to live in the world.',copy:'<strong>Release</strong> — Let the work live in the world. Jenny trusts the process, lets the outcome be interpreted by others, and begins again with a new feeling, a new fragment, a new small world.'},
+    jenny:{n:'JZ',line:'Jenny’s story — her art turns emotional memory into visual language.',copy:'<strong>Jenny’s story</strong> — As a designer and illustrator, Jenny handles the process with patience and sensitivity. She does not force an idea into shape too quickly; she lets the emotional centre appear first, then builds a visual language around it through brand, editorial and spatial design.'}
+  };
+  const cinema=document.getElementById('bunny-cinema');
+  const sceneCount=document.getElementById('scene-count');
+  const sceneLine=document.getElementById('scene-line');
+  const microcopy=document.getElementById('process-microcopy');
+  const playBtn=document.getElementById('bunny-play');
+  let bunnyTimer=null;
+  function typeNarration(text){
+    if(!sceneLine) return;
+    sceneLine.textContent='';
+    sceneLine.classList.add('type-cursor');
+    let i=0;
+    const tick=()=>{sceneLine.textContent=text.slice(0,i++); if(i<=text.length) setTimeout(tick,18); else setTimeout(()=>sceneLine.classList.remove('type-cursor'),450)};
+    tick();
+  }
+  function setBunnyScene(scene){
+    if(!cinema || !sceneData[scene]) return;
+    document.querySelectorAll('.bunny-step').forEach(b=>b.classList.toggle('active',b.dataset.scene===scene));
+    cinema.classList.remove('is-hopping');
+    void cinema.offsetWidth;
+    cinema.classList.add('is-hopping');
+    cinema.dataset.scene=scene;
+    window.setTimeout(()=>cinema.classList.remove('is-hopping'),860);
+    sceneCount.textContent=sceneData[scene].n;
+    typeNarration(sceneData[scene].line);
+    microcopy.style.opacity='0';
+    setTimeout(()=>{microcopy.innerHTML='<p>'+sceneData[scene].copy+'</p>';microcopy.style.opacity='1';},180);
+  }
+  function playBunnyStory(){
+    if(bunnyTimer){clearInterval(bunnyTimer);bunnyTimer=null;if(playBtn)playBtn.textContent='play story';return;}
+    let i=0; setBunnyScene(sceneOrder[i]); if(playBtn)playBtn.textContent='pause story';
+    bunnyTimer=setInterval(()=>{i++; if(i>=sceneOrder.length){clearInterval(bunnyTimer);bunnyTimer=null;if(playBtn)playBtn.textContent='play story';return;} setBunnyScene(sceneOrder[i]);},4300);
+  }
+  document.querySelectorAll('.bunny-step').forEach(btn=>btn.addEventListener('click',()=>{if(bunnyTimer){clearInterval(bunnyTimer);bunnyTimer=null;if(playBtn)playBtn.textContent='play story';}setBunnyScene(btn.dataset.scene)}));
+  if(playBtn) playBtn.addEventListener('click',playBunnyStory);
+  if(cinema){
+    cinema.addEventListener('pointermove',e=>{const r=cinema.getBoundingClientRect();const x=((e.clientX-r.left)/r.width)*100;const y=((e.clientY-r.top)/r.height)*100;cinema.style.setProperty('--mx',x+'%');cinema.style.setProperty('--my',y+'%');cinema.style.setProperty('--mxn',(x-50)/50);cinema.style.setProperty('--myn',(y-50)/50);});
+    cinema.addEventListener('pointerleave',()=>{cinema.style.setProperty('--mx','55%');cinema.style.setProperty('--my','45%');cinema.style.setProperty('--mxn','0');cinema.style.setProperty('--myn','0');});
+  }
+
+
+
+  // SCROLL PROGRESS
+  const sections=['hero','work','profile','exploration','studio','contact'];
+  const dots=document.querySelectorAll('.scroll-dot');
+  function updateDots(){const mid=window.innerHeight/2;let active=0;sections.forEach((id,i)=>{const el=document.getElementById(id);if(el){const r=el.getBoundingClientRect();if(r.top<=mid)active=i}});dots.forEach((d,i)=>d.classList.toggle('active',i===active))}
+  window.addEventListener('scroll',updateDots,{passive:true});
+  function scrollToSection(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+
+
+  document.querySelectorAll('.project-card[data-project]').forEach(card => {card.addEventListener('click', () => openProjectDetail(card.dataset.project));});
+  const detailClose = document.querySelector('.detail-close');
+  if(detailClose){ detailClose.addEventListener('click', closeProjectDetail); }
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeProjectDetail(); });
+
+</script>
+
+
+
+
+<script>
+</script>
+
+</body>
+
+</html>
